@@ -1,0 +1,45 @@
+# ==========================================================================
+# OTOBO Generic Interface web service for the IT Helpdesk Ticket Portal.
+# Import this into OTOBO with:
+#
+#   /opt/otobo/bin/otobo.Console.pl Admin::WebService::Add \
+#     --name TicketPortalAPI \
+#     --source-path backend/otobo-webservice.yml
+#
+# It exposes a single operation: create a ticket (POST /ticket).
+# Authentication is done with UserLogin + Password in the JSON body.
+# ==========================================================================
+
+---
+Debugger:
+  DebugThreshold: debug
+  TestMode: '0'
+Description: API used by the IT Helpdesk Ticket Portal to create tickets.
+FrameworkVersion: 10.1.x
+Provider:
+  Operation:
+    ticket-create:
+      Description: Create a new ticket with its first article.
+      IncludeTicketData: '1'
+      MappingInbound:
+        Type: Simple
+      MappingOutbound:
+        Type: Simple
+      Type: Ticket::TicketCreate
+  Transport:
+    Config:
+      AdditionalHeaders: ~
+      KeepAlive: '1'
+      MaxLength: '16000'
+      RouteOperationMapping:
+        ticket-create:
+          RequestMethod:
+            - HEAD
+            - OPTIONS
+            - POST
+          Route: /ticket
+    Type: HTTP::REST
+RemoteSystem: ''
+Requester:
+  Transport:
+    Type: HTTP::REST

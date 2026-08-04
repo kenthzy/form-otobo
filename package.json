@@ -1,0 +1,16 @@
+{
+  "name": "form-otobo",
+  "version": "1.0.0",
+  "description": "A modern, responsive employee-facing form for submitting IT support tickets. Submissions are created **directly in OTOBO** through its Generic Interface REST API (`TicketCreate`), using the submitter's email as the ticket's customer user so OTOBO sends all notifications and agent replies to them.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "daisyui": "^5.7.15",
+    "tailwindcss": "^4.3.3"
+  }
+}
