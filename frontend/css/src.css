@@ -133,3 +133,11 @@ body::after {
 .form-group.is-invalid .textarea:focus {
   outline-color: #ef4444 !important;
 }
+
+/* Adapt OTOBO Logo for dark mode */
+[data-theme="dark"] .logo-img {
+  filter: invert(1) brightness(1.2);
+}
+
+
+
