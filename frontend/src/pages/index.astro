@@ -1,0 +1,403 @@
+---
+/**
+ * BIT Helpdesk – Ticket Submission Portal
+ * ----------------------------------------------------------
+ * The customer-facing form that employees use to raise IT
+ * support tickets. It posts the completed form to the
+ * backend's `POST /api/submit` endpoint (Express, running as
+ * a separate process on port 3000), which creates the ticket
+ * in OTOBO via its Generic Interface REST API.
+ *
+ * Structure:
+ *   - global.css  : imported once (Tailwind v4 + DaisyUI + custom theme)
+ *   - form.js     : the interactive logic loaded at the bottom of this page
+ *   - public/     : static assets (logo.svg, favicon)
+ *
+ * The page builds to a static site (`npm run build` -> dist/);
+ * for local dev run `npm run dev` (proxies /api to the backend).
+ *
+ * Developer:  https://github.com/kenthzy
+ */
+import "../styles/global.css";
+---
+
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BIT Helpdesk – Ticket Submission</title>
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+  </head>
+  <body class="bg-base-200 text-base-content min-h-screen">
+    <!-- Ambient Glass Background Blobs -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+      <div class="absolute top-[10%] left-[5%] w-[380px] h-[380px] rounded-full bg-indigo-500/20 dark:bg-indigo-500/35 blur-[90px] animate-blob1"></div>
+      <div class="absolute bottom-[15%] right-[5%] w-[420px] h-[420px] rounded-full bg-purple-500/15 dark:bg-purple-500/30 blur-[100px] animate-blob2"></div>
+      <div class="absolute top-[40%] left-[30%] w-[500px] h-[500px] rounded-full bg-blue-500/15 dark:bg-blue-500/25 blur-[120px] animate-blob3"></div>
+    </div>
+
+    <main class="flex justify-center items-center px-4 py-12 min-h-screen">
+      <div class="w-full max-w-xl">
+        <!-- Ticket Form Card -->
+        <div
+          class="card w-full bg-base-100 shadow-2xl border border-base-300/40 backdrop-blur-md"
+        >
+          <div class="card-body p-6 sm:p-10">
+            <!-- Logo & Header -->
+            <div class="flex flex-col items-center text-center mb-8">
+              <img
+                src="/logo.svg"
+                alt="BIT Helpdesk Logo"
+                id="themeToggle"
+                role="button"
+                tabindex="0"
+                aria-label="Toggle light/dark mode"
+                title="Click to toggle light/dark mode"
+                class="w-26 h-26 object-contain logo-img mb-4 cursor-pointer hover:opacity-80 hover:scale-105 transition"
+              />
+              <h1
+                class="text-2xl sm:text-3xl font-extrabold tracking-tight font-title text-base-content mb-2"
+              >
+                BIT Service Desk
+              </h1>
+              <p class="text-sm text-base-content/70 max-w-md">
+                Submit a ticket and our team will get back to you.
+              </p>
+            </div>
+
+            <!-- Feedback area (success / error) -->
+            <div id="feedback" class="mb-6" aria-live="polite"></div>
+
+            <form id="ticketForm" class="space-y-5" novalidate>
+              <!-- Full Name & Email Row -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Full Name -->
+                <div class="form-group flex flex-col gap-1.5">
+                  <label
+                    for="fullName"
+                    class="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-base-content/85"
+                  >
+                    <i data-lucide="user" class="w-4 h-4 text-primary"></i>Full
+                    Name
+                  </label>
+                  <input
+                    type="text"
+                    class="input input-bordered w-full focus:input-primary transition-all duration-200"
+                    id="fullName"
+                    name="fullName"
+                    placeholder="John Smith"
+                    autocomplete="name"
+                    required
+                  />
+                  <div
+                    class="invalid-feedback text-error text-xs hidden items-center gap-1 mt-0.5"
+                  >
+                    <i
+                      data-lucide="alert-triangle"
+                      class="w-3.5 h-3.5"
+                    ></i>Please enter your name.
+                  </div>
+                </div>
+
+                <!-- Email Address -->
+                <div class="form-group flex flex-col gap-1.5">
+                  <label
+                    for="email"
+                    class="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-base-content/85"
+                  >
+                    <i data-lucide="mail" class="w-4 h-4 text-primary"></i>Email
+                    Address
+                  </label>
+                  <input
+                    type="email"
+                    class="input input-bordered w-full focus:input-primary transition-all duration-200"
+                    id="email"
+                    name="email"
+                    placeholder="john.smith@company.com"
+                    autocomplete="email"
+                    required
+                  />
+                  <div
+                    class="invalid-feedback text-error text-xs hidden items-center gap-1 mt-0.5"
+                  >
+                    <i
+                      data-lucide="alert-triangle"
+                      class="w-3.5 h-3.5"
+                    ></i>Please enter a valid email.
+                  </div>
+                </div>
+              </div>
+
+              <!-- Warning/Info subtext -->
+              <div class="text-[11px] text-base-content/60 -mt-2">
+                Notifications and agent replies are sent to the above email.
+              </div>
+
+              <!-- Type, Service, SLA Row -->
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <!-- Type -->
+                <div class="form-group flex flex-col gap-1.5">
+                  <label
+                    for="type"
+                    class="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-base-content/85"
+                  >
+                    <i data-lucide="tag" class="w-4 h-4 text-primary"></i>Type
+                  </label>
+                  <select
+                    class="select select-bordered w-full focus:select-primary transition-all duration-200"
+                    id="type"
+                    name="type"
+                    required
+                  >
+                    <option value="" selected disabled>Select type…</option>
+                    <option>Incident</option>
+                    <option>Service Request</option>
+                    <option>Inquiry</option>
+                    <option>Access Request</option>
+                  </select>
+                  <div
+                    class="invalid-feedback text-error text-xs hidden items-center gap-1 mt-0.5"
+                  >
+                    <i
+                      data-lucide="alert-triangle"
+                      class="w-3.5 h-3.5"
+                    ></i>Please select type.
+                  </div>
+                </div>
+
+                <!-- Service -->
+                <div class="form-group flex flex-col gap-1.5">
+                  <label
+                    for="service"
+                    class="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-base-content/85"
+                  >
+                    <i data-lucide="layers" class="w-4 h-4 text-primary"></i
+                    >Service
+                  </label>
+                  <select
+                    class="select select-bordered w-full focus:select-primary transition-all duration-200"
+                    id="service"
+                    name="service"
+                    required
+                  >
+                    <option value="" selected disabled>Select service…</option>
+                    <option>Hardware</option>
+                    <option>Software</option>
+                    <option>Network</option>
+                    <option>Email</option>
+                    <option>Account</option>
+                    <option>Printer</option>
+                    <option>POS</option>
+                    <option>Other</option>
+                  </select>
+                  <div
+                    class="invalid-feedback text-error text-xs hidden items-center gap-1 mt-0.5"
+                  >
+                    <i
+                      data-lucide="alert-triangle"
+                      class="w-3.5 h-3.5"
+                    ></i>Please select service.
+                  </div>
+                </div>
+
+                <!-- SLA -->
+                <div class="form-group flex flex-col gap-1.5">
+                  <label
+                    for="sla"
+                    class="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-base-content/85"
+                  >
+                    <i
+                      data-lucide="shield-alert"
+                      class="w-4 h-4 text-primary"
+                    ></i>SLA
+                  </label>
+                  <select
+                    class="select select-bordered w-full focus:select-primary transition-all duration-200"
+                    id="sla"
+                    name="sla"
+                    required
+                  >
+                    <option value="" selected disabled>Select SLA…</option>
+                    <option>Low</option>
+                    <option>Medium</option>
+                    <option>High</option>
+                    <option>Critical</option>
+                  </select>
+                  <div
+                    class="invalid-feedback text-error text-xs hidden items-center gap-1 mt-0.5"
+                  >
+                    <i
+                      data-lucide="alert-triangle"
+                      class="w-3.5 h-3.5"
+                    ></i>Please select SLA.
+                  </div>
+                </div>
+              </div>
+
+              <!-- Subject -->
+              <div class="form-group flex flex-col gap-1.5">
+                <label
+                  for="subject"
+                  class="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-base-content/85"
+                >
+                  <i data-lucide="text" class="w-4 h-4 text-primary"></i>Subject
+                </label>
+                <input
+                  type="text"
+                  class="input input-bordered w-full focus:input-primary transition-all duration-200"
+                  id="subject"
+                  name="subject"
+                  placeholder="e.g. Printer cannot print"
+                  maxlength="200"
+                  required
+                />
+                <div
+                  class="invalid-feedback text-error text-xs hidden items-center gap-1 mt-0.5"
+                >
+                  <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>Please
+                  enter a subject.
+                </div>
+              </div>
+
+              <!-- Description -->
+              <div class="form-group flex flex-col gap-1.5">
+                <label
+                  for="description"
+                  class="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-base-content/85"
+                >
+                  <i data-lucide="align-left" class="w-4 h-4 text-primary"></i
+                  >Description
+                </label>
+                <textarea
+                  class="textarea textarea-bordered w-full focus:textarea-primary min-h-[120px] transition-all duration-200"
+                  id="description"
+                  name="description"
+                  rows="5"
+                  maxlength="2000"
+                  placeholder="Please describe your issue in detail…"
+                  aria-describedby="descriptionCounter"
+                  required
+                ></textarea>
+                <div class="flex justify-between items-center mt-1">
+                  <div class="invalid-feedback text-error text-xs hidden items-center gap-1">
+                    <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i
+                    >Please enter description details.
+                  </div>
+                  <div
+                    id="descriptionCounter"
+                    class="text-xs text-base-content/50 ml-auto"
+                    aria-live="polite"
+                    >0 / 2000</div
+                  >
+                </div>
+              </div>
+
+              <!-- Priority Selection (Segmented Control) -->
+              <div class="form-group flex flex-col gap-1.5">
+                <label
+                  class="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-base-content/85"
+                >
+                  <i data-lucide="activity" class="w-4 h-4 text-primary"></i
+                  >Priority
+                </label>
+                <div class="join w-full">
+                  <input
+                    class="join-item btn flex-1"
+                    type="radio"
+                    name="priority"
+                    value="Low"
+                    aria-label="Low"
+                    required
+                  />
+                  <input
+                    class="join-item btn flex-1"
+                    type="radio"
+                    name="priority"
+                    value="Normal"
+                    aria-label="Normal"
+                    checked
+                    required
+                  />
+                  <input
+                    class="join-item btn flex-1"
+                    type="radio"
+                    name="priority"
+                    value="High"
+                    aria-label="High"
+                    required
+                  />
+                  <input
+                    class="join-item btn flex-1"
+                    type="radio"
+                    name="priority"
+                    value="Critical"
+                    aria-label="Critical"
+                    required
+                  />
+                </div>
+                <div
+                  class="invalid-feedback text-error text-xs hidden items-center gap-1 mt-0.5"
+                >
+                  <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>Please
+                  select a priority.
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="flex flex-col sm:flex-row gap-3 mt-8">
+                <button
+                  type="submit"
+                  class="btn btn-primary flex-1 shadow-lg"
+                  id="submitBtn"
+                >
+                  <span id="submitBtnText">Submit Ticket</span>
+                  <span
+                    id="submitBtnSpinner"
+                    class="loading loading-spinner loading-sm hidden"
+                  ></span>
+                </button>
+                <button type="reset" class="btn btn-outline" id="resetBtn">
+                  <i data-lucide="refresh-cw" class="w-4 h-4"></i>Reset
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Confirmation Dialog (Native HTML5 <dialog> + DaisyUI) -->
+    <dialog class="modal modal-bottom sm:modal-middle" id="confirmModal">
+      <div class="modal-box border border-base-300/40 shadow-2xl">
+        <h3
+          class="font-bold text-lg flex items-center gap-2 text-primary font-title"
+        >
+          <i data-lucide="send" class="w-5 h-5"></i>Submit ticket?
+        </h3>
+        <p class="py-4 text-sm text-base-content/80">
+          Your ticket will be sent to the support mailbox. Would you like to
+          continue?
+        </p>
+        <div class="modal-action">
+          <button type="button" class="btn btn-outline" id="modalCancelBtn"
+            >Cancel</button
+          >
+          <button type="button" class="btn btn-primary" id="confirmSubmitBtn"
+            >Yes, submit</button
+          >
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop bg-black/30 backdrop-blur-[2px]">
+        <button>close</button>
+      </form>
+    </dialog>
+
+    <!-- Lucide Icons -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide/dist/umd/lucide.min.js"></script>
+    <!-- App logic -->
+    <script>
+      import "../scripts/form.js";
+    </script>
+  </body>
+</html>

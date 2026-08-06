@@ -1,14 +1,26 @@
-/* ==========================================================================
-   IT Helpdesk – Ticket Submission Portal (backend)
-   Express server that accepts ticket submissions and creates tickets in
-   OTOBO via the Generic Interface REST API (TicketCreate operation).
+/* DON'T EDIT THIS FILE UNLESS YOU KNOW WHAT YOU ARE DOING!
 
-   Endpoint:  POST /api/submit
-   Payload:   { fullName, email, type, service, sla, subject, description, priority }
+   This is a simple Express server that accepts ticket submissions from the
+   frontend form and creates tickets in OTOBO via the Generic Interface REST API
+   (TicketCreate operation).
 
-   OTOBO then sends notifications / agent replies to the submitter's email
-   (used as the ticket's customer user).
-   ========================================================================== */
+   The server validates the incoming payload, maps the priority to OTOBO's
+   internal priority IDs, and sends a request to OTOBO's Generic Interface.
+
+   The server responds with JSON indicating success or failure, along with the
+   created ticket's ID and number if successful.
+
+   The server also includes a health check endpoint for monitoring purposes.
+
+   Environment variables:
+     - PORT: Port for the Express server (default: 3000)
+     - CORS_ORIGIN: Allowed origin(s) for CORS (default: "*")
+     - OTOBRO_BASE_URL: Base URL of the OTOBO instance (required)
+     - OTOBRO_ROUTE: Route for the Generic Interface (default: "/ticket")
+     - OTOBRO_USER: User login for OTOBO (required)
+     - OTOBRO_PASSWORD: Password for OTOBO user (required)
+     - OTOBRO_QUEUE: Queue for new tickets (default: "Raw")
+     - OTOBRO_TYPE: Type for new tickets (default: "Unclassified") */
 
 "use strict";
 
@@ -17,11 +29,22 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 
-const { mapPriority } = require("./mappings");
-
 const app = express();
 
-/* ---------- Configuration ------------------------------------------------- */
+/* Priority is sent as the OTOBO priority ID (stable across instances; names
+   like "3 normal" / "3 Medium" differ per OTOBO install).
+   Standard OTOBO IDs: 1 very low, 2 low, 3 normal, 4 high, 5 very urgent. */
+
+const PRIORITY_MAP = {
+  Low: "2",
+  Normal: "3",
+  High: "4",
+  Critical: "5",
+};
+
+const mapPriority = (value) => PRIORITY_MAP[value] || "3";
+
+/// Server Configuration
 const PORT = process.env.PORT || 3000;
 
 // Frontend origin(s) allowed to call this API.
@@ -34,11 +57,11 @@ const OTOBRO_PASSWORD = process.env.OTOBRO_PASSWORD || "";
 const OTOBRO_QUEUE = process.env.OTOBRO_QUEUE || "Raw";
 const OTOBRO_TYPE = process.env.OTOBRO_TYPE || "Unclassified";
 
-/* ---------- Middleware ---------------------------------------------------- */
+// Middleware
 app.use(cors({ origin: CORS_ORIGIN }));
 app.use(express.json());
 
-/* ---------- Validation ---------------------------------------------------- */
+// Validation
 const REQUIRED_FIELDS = [
   "fullName",
   "email",
@@ -53,14 +76,13 @@ const REQUIRED_FIELDS = [
 const isValidRequest = (body) => {
   if (!body || typeof body !== "object") return false;
   return REQUIRED_FIELDS.every(
-    (field) => typeof body[field] === "string" && body[field].trim() !== ""
+    (field) => typeof body[field] === "string" && body[field].trim() !== "",
   );
 };
 
-const isValidEmail = (value) =>
-  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
-/* ---------- OTOBO request builder ----------------------------------------- */
+// OTOBO Payload Builder
 const buildOtoboPayload = (data) => {
   const email = data.email.trim();
 
@@ -94,7 +116,7 @@ const buildOtoboPayload = (data) => {
   };
 };
 
-/* ---------- OTOBO API call ------------------------------------------------ */
+// OTOBO API Call
 const createOtoboTicket = async (payload) => {
   const endpoint = `${OTOBRO_BASE_URL}${OTOBRO_ROUTE}`;
 
@@ -104,22 +126,16 @@ const createOtoboTicket = async (payload) => {
     body: JSON.stringify(payload),
   });
 
-  // OTOBO's Generic Interface always answers with JSON.
+  // OTOBO's Generic Interface answers with JSON.
   const result = await response.json().catch(() => ({}));
-
-  // OTOBO returns several response shapes for TicketCreate, depending on the
-  // operation's "IncludeTicketData" setting:
-  //   - { Success: 1, Data: { TicketID, TicketNumber } }   (IncludeTicketData: 0)
-  //   - { TicketID, TicketNumber, Ticket: { ... } }        (IncludeTicketData: 1)
-  // or an error:
-  //   - { Error: { ErrorCode, ErrorMessage } } or { Success: 0, ErrorMessage }
   const ticketID =
     result.Data?.TicketID ?? result.TicketID ?? result.Ticket?.TicketID;
   const ticketNumber =
-    result.Data?.TicketNumber ?? result.TicketNumber ?? result.Ticket?.TicketNumber;
+    result.Data?.TicketNumber ??
+    result.TicketNumber ??
+    result.Ticket?.TicketNumber;
 
-  const success =
-    result.Success == 1 || Boolean(ticketID);
+  const success = result.Success == 1 || Boolean(ticketID);
 
   if (!success) {
     const hasErrorObject = Boolean(result.Error) || result.Success === 0;
@@ -136,7 +152,7 @@ const createOtoboTicket = async (payload) => {
   return { ticketID, ticketNumber };
 };
 
-/* ---------- Route: POST /api/submit --------------------------------------- */
+// POST
 app.post("/api/submit", async (req, res) => {
   try {
     if (!isValidRequest(req.body)) {
@@ -171,12 +187,12 @@ app.post("/api/submit", async (req, res) => {
   }
 });
 
-/* ---------- Health check --------------------------------------------------- */
+// Health Check Endpoint
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
-/* ---------- Start ---------------------------------------------------------- */
+// Start
 app.listen(PORT, () => {
   console.log(`Ticket backend running on http://localhost:${PORT}`);
 });

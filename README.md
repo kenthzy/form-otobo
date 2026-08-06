@@ -1,25 +1,27 @@
-# IT Helpdesk Ticket Portal
+# BIT Helpdesk – IT Ticket Portal
 
 A modern, responsive employee-facing form for submitting IT support tickets.
 Submissions are created **directly in OTOBO** through its Generic Interface
 REST API (`TicketCreate`), using the submitter's email as the ticket's
 customer user so OTOBO sends all notifications and agent replies to them.
 
-**Stack:** HTML5 · Bootstrap 5 · Vanilla JavaScript · Node.js (Express)
+**Stack:** Astro · Tailwind CSS v4 · DaisyUI v5 · Vanilla JS · Node.js (Express)
 
 ## Folder structure
 
 ```
 form-otobo/
-├── frontend/                 # Browser app
-│   ├── index.html            # Ticket form page
-│   ├── css/style.css         # Light corporate theme
-│   └── js/
-│       ├── config.js         # API_ENDPOINT – change when deployed
-│       └── app.js            # Validation, char counter, confirm modal, submit
+├── frontend/                 # Astro static site (builds to dist/)
+│   ├── astro.config.mjs      # Tailwind plugin + dev proxy /api → :3000
+│   ├── package.json
+│   ├── public/
+│   │   └── logo.svg          # Header logo
+│   └── src/
+│       ├── pages/index.astro # Ticket form page
+│       ├── styles/global.css # Tailwind + DaisyUI + custom theme/validation
+│       └── scripts/form.js   # Validation, char counter, modal, theme, submit
 └── backend/                  # Express API that talks to OTOBO
     ├── server.js             # POST /api/submit -> OTOBO TicketCreate
-    ├── mappings.js           # Form values -> OTOBO names/IDs
     ├── otobo-webservice.yml  # OTOBO web service definition (import once)
     ├── package.json
     ├── .env.example          # Copy to .env and fill in
@@ -28,9 +30,9 @@ form-otobo/
 
 ## Architecture
 
-1. User fills the form; `frontend/js/app.js` validates client-side.
+1. User fills the form; `frontend/src/scripts/form.js` validates client-side.
 2. A confirmation modal asks before sending.
-3. `fetch()` POSTs JSON to `POST /api/submit` on the backend.
+3. `fetch()` POSTs JSON to `/api/submit` (relative — proxied to the backend).
 4. The backend validates, maps fields, and calls OTOBO:
    `POST {OTOBRO_BASE_URL}{OTOBRO_ROUTE}` (TicketCreate).
 5. OTOBO creates the ticket in the configured queue and emails the user.
@@ -72,16 +74,26 @@ npm install
 npm start              # http://localhost:3000
 ```
 
-### 2. Frontend
-
-Serve the repo root (or just open `frontend/index.html`):
+### 2. Frontend (dev)
 
 ```bash
-# from the repo root
-python3 -m http.server 5500
+cd frontend
+npm install
+npm run dev            # http://localhost:4321 (proxies /api → :3000)
 ```
 
-Open **http://localhost:5500** and submit a ticket.
+Open **http://localhost:4321** and submit a ticket. `astro dev` forwards
+`/api/*` requests to the backend automatically (see `astro.config.mjs`).
+
+### 3. Frontend (production build)
+
+```bash
+cd frontend
+npm run build          # outputs static site to dist/
+```
+
+`dist/` is served by a web server (see deployment below); the backend must be
+running on the same origin behind `/api`.
 
 ## Configuration (`.env`)
 
@@ -98,7 +110,7 @@ Open **http://localhost:5500** and submit a ticket.
 
 ## Priority / Type / Service / SLA mapping
 
-Set in `backend/mappings.js`. Priority is sent as the **OTOBRO priority ID**
+Set in `backend/server.js`. Priority is sent as the **OTOBRO priority ID**
 (names like `3 normal` / `3 Medium` differ per instance; IDs are stable):
 
 | Form value | OTOBO priority ID |
@@ -138,6 +150,24 @@ Responses:
 
 **`GET /api/health`** – `{ "status": "ok" }`
 
+## Deploying on the OTOBO VM (internal, via VPN)
+
+1. Build the frontend → copy `frontend/dist/` and `backend/` to the VM
+   (e.g. `/opt/helpdesk`).
+2. On the VM, set `backend/.env` so OTOBO is reached locally:
+   `OTOBRO_BASE_URL=http://localhost/otobo/nph-genericinterface.pl/Webservice/TicketPortalAPI`.
+3. Keep the backend running and auto-start on boot — **pm2** (recommended):
+   ```bash
+   cd backend && npm i -g pm2
+   pm2 start server.js --name helpdesk-api
+   pm2 save && pm2 startup
+   ```
+   or a **systemd** service with `Restart=always`.
+4. Add a path on OTOBO's web server (Apache or nginx), e.g. `http://<host>/portal/`:
+   - serve `dist/` statically at `/portal/`, and
+   - reverse-proxy `/portal/api` → `127.0.0.1:3000`.
+5. Reload the web server. Users on the VPN open `http://<host>/portal/`.
+
 ## Troubleshooting
 
 - **`CustomerUser ... parameter is invalid!`** → the email is not registered as
@@ -147,7 +177,7 @@ Responses:
   queue's group.
 - **`Invalid Queue`** → `OTOBRO_QUEUE` doesn't exist.
 - **`Ticket->PriorityID or Ticket->Priority parameter is invalid!`** → the
-  priority name/ID doesn't exist; priority IDs are sent from `mappings.js`
+  priority name/ID doesn't exist; priority IDs are sent from `server.js`
   (standard OTOBO IDs 1–5). Check OTOBO → **Admin → Ticket Settings →
   Priorities** if it fails.
 - **`Ticket->TypeID or Ticket->Type parameter is invalid!`** → `OTOBRO_TYPE`

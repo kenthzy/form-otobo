@@ -1,18 +1,18 @@
-/* ==========================================================================
-   IT Helpdesk – Ticket Submission Portal
-   Vanilla JavaScript: validation, custom styling hooks, character counter,
-   native HTML5 dialog controls, theme switcher, and API fetch submission.
-   ========================================================================== */
-
 "use strict";
 
+// API endpoint (relative → same origin, proxied to the backend).
+const API_ENDPOINT = "/api/submit";
+
+// Max length of the description field (must match the HTML maxlength).
+const DESCRIPTION_MAX = 2000;
+
 document.addEventListener("DOMContentLoaded", () => {
-  // ----- Initialize Lucide Icons -----
+  // Initialize Lucide Icons
   if (typeof lucide !== "undefined") {
     lucide.createIcons();
   }
 
-  // ----- Element references -----
+  // Element references
   const form = document.getElementById("ticketForm");
   const submitBtn = document.getElementById("submitBtn");
   const submitBtnText = document.getElementById("submitBtnText");
@@ -31,12 +31,13 @@ document.addEventListener("DOMContentLoaded", () => {
   // Theme Switcher Elements
   const themeToggle = document.getElementById("themeToggle");
 
-  // ----- State -----
-  let pendingPayload = null; // form data waiting for confirmation
+  // State
+  let pendingPayload = null;
 
-  // ----- Theme Switcher Logic -----
+  // Theme Switcher Logic
   const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  const initialTheme = localStorage.getItem("theme") || (systemPrefersDark ? "dark" : "light");
+  const initialTheme =
+    localStorage.getItem("theme") || (systemPrefersDark ? "dark" : "light");
 
   const applyTheme = (theme) => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -46,13 +47,24 @@ document.addEventListener("DOMContentLoaded", () => {
   applyTheme(initialTheme);
 
   themeToggle.addEventListener("click", () => {
-    const newTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    const newTheme =
+      document.documentElement.getAttribute("data-theme") === "dark"
+        ? "light"
+        : "dark";
     applyTheme(newTheme);
   });
 
-  // ----- Custom Modal Controls -----
+  // Keyboard access for the logo toggle (Enter / Space)
+  themeToggle.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      themeToggle.click();
+    }
+  });
+
+  // Custom Modal Controls
   const showModal = () => {
-    confirmModal.showModal(); 
+    confirmModal.showModal();
     confirmSubmitBtn.focus();
   };
 
@@ -63,7 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   modalCancelBtn.addEventListener("click", hideModal);
 
-  // ----- Live character counter -----
+  // Live character counter
   const updateCounter = () => {
     const len = description.value.length;
     const remaining = DESCRIPTION_MAX - len;
@@ -82,8 +94,7 @@ document.addEventListener("DOMContentLoaded", () => {
   description.addEventListener("input", updateCounter);
   updateCounter();
 
-  // ----- Custom Form Validation Logic -----
-  // Clear error styling on input/change events
+  // Custom Form Validation Logic & Error Styling
   form.querySelectorAll("input, select, textarea").forEach((el) => {
     const clearError = () => {
       const group = el.closest(".form-group");
@@ -95,7 +106,7 @@ document.addEventListener("DOMContentLoaded", () => {
     el.addEventListener("change", clearError);
   });
 
-  // ----- Collect & build payload -----
+  // Collect & build payload
   const collectPayload = () => {
     const data = new FormData(form);
     return {
@@ -110,7 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   };
 
-  // ----- Submit Form Action -----
+  // Submit Form Action
   const handleSubmit = (event) => {
     event.preventDefault();
 
@@ -121,14 +132,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Check validity of form inputs
     if (!form.checkValidity()) {
-      form.querySelectorAll("input:invalid, select:invalid, textarea:invalid").forEach((el) => {
-        const group = el.closest(".form-group");
-        if (group) {
-          group.classList.add("is-invalid");
-        }
-      });
+      form
+        .querySelectorAll("input:invalid, select:invalid, textarea:invalid")
+        .forEach((el) => {
+          const group = el.closest(".form-group");
+          if (group) {
+            group.classList.add("is-invalid");
+          }
+        });
       // Focus on first invalid field
-      form.querySelector("input:invalid, select:invalid, textarea:invalid")?.focus();
+      form
+        .querySelector("input:invalid, select:invalid, textarea:invalid")
+        ?.focus();
       return;
     }
 
@@ -155,7 +170,9 @@ document.addEventListener("DOMContentLoaded", () => {
         );
       }
 
-      const ticketNumber = result.ticketNumber ? ` (Ticket #${result.ticketNumber})` : "";
+      const ticketNumber = result.ticketNumber
+        ? ` (Ticket #${result.ticketNumber})`
+        : "";
       showFeedback(
         "success",
         `Your ticket has been submitted successfully!${ticketNumber}`
@@ -179,14 +196,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (payload) sendTicket(payload);
   });
 
-  // ----- Loading Spinner State -----
+  // Loading Spinner State
   const setLoading = (isLoading) => {
     submitBtn.disabled = isLoading;
     submitBtnText.textContent = isLoading ? "Submitting…" : "Submit Ticket";
     submitBtnSpinner.classList.toggle("hidden", !isLoading);
   };
 
-  // ----- Custom Feedback Alerts -----
+  // Custom Feedback Alerts
   const clearFeedback = () => {
     feedback.innerHTML = "";
   };
@@ -221,9 +238,9 @@ document.addEventListener("DOMContentLoaded", () => {
       ">": "&gt;",
       '"': "&quot;",
       "'": "&#39;",
-    }[char]));
+    })[char]);
 
-  // ----- Form Reset -----
+  // Form Reset
   resetBtn.addEventListener("click", () => {
     // Let the browser reset fields asynchronously, then clean up state
     setTimeout(() => {
@@ -236,6 +253,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 0);
   });
 
-  // ----- Attach Form Event -----
+  // Attach Form Event
   form.addEventListener("submit", handleSubmit);
 });
