@@ -23,6 +23,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const description = document.getElementById("description");
   const descriptionCounter = document.getElementById("descriptionCounter");
 
+  const needByDate = document.getElementById("needByDate");
+  const needByTime = document.getElementById("needByTime");
+
   // Custom Modal Elements (using native HTML5 <dialog>)
   const confirmModal = document.getElementById("confirmModal");
   const confirmSubmitBtn = document.getElementById("confirmSubmitBtn");
@@ -94,6 +97,33 @@ document.addEventListener("DOMContentLoaded", () => {
   description.addEventListener("input", updateCounter);
   updateCounter();
 
+  // "Need By" must be a future date & time
+  const validateNeedBy = () => {
+    const dateVal = needByDate.value;
+    const timeVal = needByTime.value;
+    const now = new Date();
+    const todayStr = now.toLocaleDateString("en-CA"); // YYYY-MM-DD
+    const nowTimeStr = now.toLocaleTimeString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+    }); // HH:mm (24h)
+
+    if (dateVal && dateVal < todayStr) {
+      needByDate.setCustomValidity("Select a valid future date.");
+    } else {
+      needByDate.setCustomValidity("");
+    }
+
+    if (dateVal === todayStr && timeVal && timeVal <= nowTimeStr) {
+      needByTime.setCustomValidity("Select a valid future time.");
+    } else {
+      needByTime.setCustomValidity("");
+    }
+  };
+
+  needByDate.addEventListener("input", validateNeedBy);
+  needByTime.addEventListener("input", validateNeedBy);
+
   // Custom Form Validation Logic & Error Styling
   form.querySelectorAll("input, select, textarea").forEach((el) => {
     const clearError = () => {
@@ -107,6 +137,15 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Collect & build payload
+  const formatNeedBy = (dateStr, timeStr) => {
+    if (!dateStr || !timeStr) return "";
+    const [y, m, d] = dateStr.split("-"); // "2026-08-08"
+    const [hh, mm] = timeStr.split(":"); // "08:00"
+    const hour = Number(hh) % 12 || 12;
+    const suffix = Number(hh) < 12 ? "AM" : "PM";
+    return `${m}/${d}/${y} ${hour}:${mm} ${suffix}`; // "08/08/2026 8:00 AM"
+  };
+
   const collectPayload = () => {
     const data = new FormData(form);
     return {
@@ -117,6 +156,7 @@ document.addEventListener("DOMContentLoaded", () => {
       sla: data.get("sla"),
       subject: data.get("subject").trim(),
       description: data.get("description").trim(),
+      needBy: formatNeedBy(data.get("needByDate"), data.get("needByTime")),
       priority: data.get("priority"),
     };
   };

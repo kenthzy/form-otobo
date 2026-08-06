@@ -70,6 +70,7 @@ const REQUIRED_FIELDS = [
   "sla",
   "subject",
   "description",
+  "needBy",
   "priority",
 ];
 
@@ -105,6 +106,7 @@ const buildOtoboPayload = (data) => {
         `Service: ${data.service}`,
         `SLA: ${data.sla}`,
         `Priority: ${data.priority}`,
+        `Need By: ${data.needBy}`,
         "",
         "Description:",
         data.description,
