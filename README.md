@@ -5,6 +5,11 @@ Submissions are created **directly in OTOBO** through its Generic Interface
 REST API (`TicketCreate`), using the submitter's email as the ticket's
 customer user so OTOBO sends all notifications and agent replies to them.
 
+No OTOBO customer account is required: OTOBO's `TicketCreate` accepts any
+valid email address as `Ticket.CustomerUser` even if the email is not
+registered as a Customer User, and OTOBO still sends ticket updates and agent
+replies to that address.
+
 **Stack:** Astro · Tailwind CSS v4 · DaisyUI v5 · Vanilla JS · Node.js (Express)
 
 ## Folder structure
@@ -57,11 +62,21 @@ add web service `TicketPortalAPI` (Provider, HTTP::REST) with a
 Admin → **Agents & Users → Users** → add `apiuser` with a password and
 **rw** permission on the group that owns the target queue (default `Raw`).
 
-### 3. Register employees as customer users
-OTOBO's `TicketCreate` requires every submitter's email to be an existing
-**Customer User**. Admin → **Customers** → create a Customer, then
-**Customer Users** → add each employee (use the same email they will type in
-the form). Otherwise submissions fail with `CustomerUser parameter is invalid!`.
+### 3. Email delivery (optional but recommended)
+
+No customer pre-registration is needed. `TicketCreate` accepts any valid email
+as the ticket's customer and OTOBO sends replies/notifications to it. To let
+customers receive emails:
+
+1. **Outbound SMTP**: Admin → **Communication → Email Outbound** — set a working
+   SMTP server/credentials (e.g. `smtp.gmail.com`, port 587, an app password).
+   Without this, no email reaches the submitter.
+2. **System address**: Admin → **Communication → Email Addresses** — ensure the
+   queue used by `OTOBRO_QUEUE` has a valid system (From) address.
+3. *(Optional) Instant confirmation*: to email the customer immediately on
+   ticket creation, add a **Ticket Notification** (Admin → Communication →
+   Ticket Notifications) on the `TicketCreate` event sent to the ticket's
+   customer user — or enable SysConfig `AutoResponseForWebTickets`.
 
 ## Getting started
 
@@ -108,22 +123,11 @@ running on the same origin behind `/api`.
 | `PORT`              | Backend port                                | `3000`                      |
 | `CORS_ORIGIN`       | Allowed frontend origin (`*` in dev)        | `*`                         |
 
-## Priority / Type / Service / SLA mapping
+## Type / Service mapping
 
-Set in `backend/server.js`. Priority is sent as the **OTOBRO priority ID**
-(names like `3 normal` / `3 Medium` differ per instance; IDs are stable):
-
-| Form value | OTOBO priority ID |
-| ---------- | ----------------- |
-| Low        | `2`               |
-| Normal     | `3`               |
-| High       | `4`               |
-| Critical   | `5`               |
-
-`Type`, `Service`, and `SLA` are **not** sent as OTOBO ticket attributes — they
-are kept in the article body only, because OTOBO ticket types/services may not
-exist by the form's names. A valid ticket `Type` is sent via `OTOBRO_TYPE`
-(default `Unclassified`); change it if your instance uses a different type.
+Set in `backend/server.js`. Type and Service are **not** sent as OTOBO ticket
+attributes — they are kept in the article body only, because the form's values
+may not exist as OTOBO ticket types/services.
 
 ## API reference
 
@@ -135,10 +139,8 @@ exist by the form's names. A valid ticket `Type` is sent via `OTOBRO_TYPE`
   "email": "john.smith@company.com",
   "type": "Incident",
   "service": "Printer",
-  "sla": "High",
   "subject": "Printer cannot print",
-  "description": "The printer is offline since this morning.",
-  "priority": "High"
+  "description": "The printer is offline since this morning."
 }
 ```
 
@@ -170,16 +172,16 @@ Responses:
 
 ## Troubleshooting
 
-- **`CustomerUser ... parameter is invalid!`** → the email is not registered as
-  a Customer User in OTOBO (see step 3 above).
+- **`CustomerUser ... parameter is invalid!`** → the email is not a valid email
+  address format. OTOBO 10.x accepts unregistered but well-formed emails; no
+  customer account has to exist beforehand.
 - **`User could not be authenticated`** → wrong `OTOBRO_USER`/`OTOBRO_PASSWORD`.
 - **`AccessDenied` / can't create in queue** → `apiuser` lacks **rw** on the
   queue's group.
 - **`Invalid Queue`** → `OTOBRO_QUEUE` doesn't exist.
-- **`Ticket->PriorityID or Ticket->Priority parameter is invalid!`** → the
-  priority name/ID doesn't exist; priority IDs are sent from `server.js`
-  (standard OTOBO IDs 1–5). Check OTOBO → **Admin → Ticket Settings →
-  Priorities** if it fails.
+- **`Ticket->PriorityID or Ticket->Priority parameter is invalid!`** → priority
+  ID `3` doesn't exist (unlikely — it's the standard OTOBO "normal" ID). See
+  OTOBO → **Admin → Ticket Settings → Priorities** if it fails.
 - **`Ticket->TypeID or Ticket->Type parameter is invalid!`** → `OTOBRO_TYPE`
   is not a valid ticket type. See OTOBO → **Admin → Ticket Settings →
   Types** and set `OTOBRO_TYPE` to an existing type (e.g. `Unclassified`).

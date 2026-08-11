@@ -31,18 +31,8 @@ const cors = require("cors");
 
 const app = express();
 
-/* Priority is sent as the OTOBO priority ID (stable across instances; names
-   like "3 normal" / "3 Medium" differ per OTOBO install).
-   Standard OTOBO IDs: 1 very low, 2 low, 3 normal, 4 high, 5 very urgent. */
-
-const PRIORITY_MAP = {
-  Low: "2",
-  Normal: "3",
-  High: "4",
-  Critical: "5",
-};
-
-const mapPriority = (value) => PRIORITY_MAP[value] || "3";
+/* Priority is fixed at "3" (normal) since the form no longer sends a priority.
+   Standard OTOBO priority IDs: 1 very low, 2 low, 3 normal, 4 high, 5 very urgent. */
 
 /// Server Configuration
 const PORT = process.env.PORT || 3000;
@@ -67,11 +57,9 @@ const REQUIRED_FIELDS = [
   "email",
   "type",
   "service",
-  "sla",
   "subject",
   "description",
   "needBy",
-  "priority",
 ];
 
 const isValidRequest = (body) => {
@@ -95,8 +83,9 @@ const buildOtoboPayload = (data) => {
       Queue: OTOBRO_QUEUE,
       State: "new",
       Type: OTOBRO_TYPE,
-      PriorityID: mapPriority(data.priority),
+      PriorityID: "3",
       CustomerUser: email,
+      CustomerID: email,
     },
     Article: {
       Subject: data.subject.trim(),
@@ -104,8 +93,6 @@ const buildOtoboPayload = (data) => {
         `Full Name: ${data.fullName}`,
         `Type: ${data.type}`,
         `Service: ${data.service}`,
-        `SLA: ${data.sla}`,
-        `Priority: ${data.priority}`,
         `Need By: ${data.needBy}`,
         "",
         "Description:",

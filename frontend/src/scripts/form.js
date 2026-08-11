@@ -153,11 +153,9 @@ document.addEventListener("DOMContentLoaded", () => {
       email: data.get("email").trim(),
       type: data.get("type"),
       service: data.get("service"),
-      sla: data.get("sla"),
       subject: data.get("subject").trim(),
       description: data.get("description").trim(),
       needBy: formatNeedBy(data.get("needByDate"), data.get("needByTime")),
-      priority: data.get("priority"),
     };
   };
 

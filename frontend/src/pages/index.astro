@@ -26,7 +26,7 @@ import "../styles/global.css";
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>BIT Helpdesk – Ticket Submission</title>
+    <title>P&O Reception Form – Ticket Submission</title>
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
   </head>
   <body class="bg-base-200 text-base-content min-h-screen">
@@ -59,10 +59,10 @@ import "../styles/global.css";
               <h1
                 class="text-2xl sm:text-3xl font-extrabold tracking-tight font-title text-base-content mb-2"
               >
-                BIT Service Desk
+                P&O Reception Form
               </h1>
               <p class="text-sm text-base-content/70 max-w-md">
-                Submit a ticket and our team will get back to you.
+                Submit a ticket for your concerns or requests.
               </p>
             </div>
 
@@ -134,8 +134,8 @@ import "../styles/global.css";
                 Notifications and agent replies are sent to the above email.
               </div>
 
-              <!-- Type, Service, SLA Row -->
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <!-- Type, Service Row -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <!-- Type -->
                 <div class="form-group flex flex-col gap-1.5">
                   <label
@@ -198,39 +198,6 @@ import "../styles/global.css";
                       data-lucide="alert-triangle"
                       class="w-3.5 h-3.5"
                     ></i>Please select service.
-                  </div>
-                </div>
-
-                <!-- SLA -->
-                <div class="form-group flex flex-col gap-1.5">
-                  <label
-                    for="sla"
-                    class="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-base-content/85"
-                  >
-                    <i
-                      data-lucide="shield-alert"
-                      class="w-4 h-4 text-primary"
-                    ></i>SLA
-                  </label>
-                  <select
-                    class="select select-bordered w-full focus:select-primary transition-all duration-200"
-                    id="sla"
-                    name="sla"
-                    required
-                  >
-                    <option value="" selected disabled>Select SLA…</option>
-                    <option>Low</option>
-                    <option>Medium</option>
-                    <option>High</option>
-                    <option>Critical</option>
-                  </select>
-                  <div
-                    class="invalid-feedback text-error text-xs hidden items-center gap-1 mt-0.5"
-                  >
-                    <i
-                      data-lucide="alert-triangle"
-                      class="w-3.5 h-3.5"
-                    ></i>Please select SLA.
                   </div>
                 </div>
               </div>
@@ -338,57 +305,6 @@ import "../styles/global.css";
                       ></i>Select a valid time.
                     </div>
                   </div>
-                </div>
-              </div>
-
-              <!-- Priority Selection (Segmented Control) -->
-              <div class="form-group flex flex-col gap-1.5">
-                <label
-                  class="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-base-content/85"
-                >
-                  <i data-lucide="activity" class="w-4 h-4 text-primary"></i
-                  >Priority
-                </label>
-                <div class="join w-full">
-                  <input
-                    class="join-item btn flex-1"
-                    type="radio"
-                    name="priority"
-                    value="Low"
-                    aria-label="Low"
-                    required
-                  />
-                  <input
-                    class="join-item btn flex-1"
-                    type="radio"
-                    name="priority"
-                    value="Normal"
-                    aria-label="Normal"
-                    checked
-                    required
-                  />
-                  <input
-                    class="join-item btn flex-1"
-                    type="radio"
-                    name="priority"
-                    value="High"
-                    aria-label="High"
-                    required
-                  />
-                  <input
-                    class="join-item btn flex-1"
-                    type="radio"
-                    name="priority"
-                    value="Critical"
-                    aria-label="Critical"
-                    required
-                  />
-                </div>
-                <div
-                  class="invalid-feedback text-error text-xs hidden items-center gap-1 mt-0.5"
-                >
-                  <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>Please
-                  select a priority.
                 </div>
               </div>
 
