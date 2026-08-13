@@ -1,6 +1,7 @@
-# BIT Helpdesk – IT Ticket Portal
+# P&O Reception – Ticket Portal
 
-A modern, responsive employee-facing form for submitting IT support tickets.
+A modern, responsive form for submitting **Meeting Room Reservation** and
+**Parking Lot Request** tickets (e.g. at the front desk).
 Submissions are created **directly in OTOBO** through its Generic Interface
 REST API (`TicketCreate`), using the submitter's email as the ticket's
 customer user so OTOBO sends all notifications and agent replies to them.
@@ -123,11 +124,15 @@ running on the same origin behind `/api`.
 | `PORT`              | Backend port                                | `3000`                      |
 | `CORS_ORIGIN`       | Allowed frontend origin (`*` in dev)        | `*`                         |
 
-## Type / Service mapping
+## Type / Vehicle mapping
 
-Set in `backend/server.js`. Type and Service are **not** sent as OTOBO ticket
-attributes — they are kept in the article body only, because the form's values
-may not exist as OTOBO ticket types/services.
+The **Request Type** dropdown sends OTOBO's ticket type name directly
+(`Meeting Room Reservation` / `Parking Lot Request`) and must exist under
+OTOBO → **Admin → Ticket Settings → Types**.
+
+The **Vehicle Type** field only appears when **Parking Lot Request** is
+selected and **No. of Pax** only when **Meeting Room Reservation** is selected;
+both are optional otherwise and are kept in the article body only.
 
 ## API reference
 
@@ -135,14 +140,29 @@ may not exist as OTOBO ticket types/services.
 
 ```json
 {
-  "fullName": "John Smith",
+  "firstName": "John",
+  "lastName": "Smith",
   "email": "john.smith@company.com",
-  "type": "Incident",
-  "service": "Printer",
-  "subject": "Printer cannot print",
-  "description": "The printer is offline since this morning."
+  "type": "Meeting Room Reservation",
+  "location": "Head Office",
+  "service": "",
+  "participants": "6-10",
+  "subject": "Q3 Town Hall",
+  "description": "Projector needed, reserve 2 parking slots.",
+  "date": "Aug 14, 2026",
+  "startTime": "9:00 AM",
+  "endTime": "11:00 AM"
 }
 ```
+
+Validation: `firstName`, `lastName`, `email`, `type`, `location`, `date`,
+`subject`, `startTime` and `endTime` are required. `service` (vehicle type) is
+required only when `type` is `Parking Lot Request`, and `participants` only when
+`type` is `Meeting Room Reservation`. `description` (remarks) is optional.
+
+On the ticket, the backend sets `CustomerUser`/`CustomerID` to the email, the
+Request Title (`subject`) becomes the OTOBO ticket title, and the submitter's
+name and request details appear in the ticket body under `Remarks:`.
 
 Responses:
 - `200 { "success": true, "ticketID": 123, "ticketNumber": "20120230000010" }`

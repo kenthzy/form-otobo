@@ -53,13 +53,15 @@ app.use(express.json());
 
 // Validation
 const REQUIRED_FIELDS = [
-  "fullName",
+  "firstName",
+  "lastName",
   "email",
   "type",
-  "service",
+  "location",
+  "date",
   "subject",
-  "description",
-  "needBy",
+  "startTime",
+  "endTime",
 ];
 
 const isValidRequest = (body) => {
@@ -71,9 +73,34 @@ const isValidRequest = (body) => {
 
 const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
+// Escape user-supplied values for the HTML article body.
+const escapeHtml = (value) =>
+  String(value ?? "").replace(
+    /[&<>"']/g,
+    (char) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+        char
+      ],
+  );
+
 // OTOBO Payload Builder
 const buildOtoboPayload = (data) => {
   const email = data.email.trim();
+  const esc = escapeHtml;
+
+  const bodyLines = [
+    `<b>Full Name:</b> ${esc(data.firstName)} ${esc(data.lastName)}`,
+    `<b>Request Title:</b> ${esc(data.subject)}`,
+    `<b>Type:</b> ${esc(data.type)}`,
+    `<b>Location:</b> ${esc(data.location)}`,
+    `<b>Date:</b> ${esc(data.date)}`,
+    `<b>Time:</b> ${esc(data.startTime)} - ${esc(data.endTime)}`,
+    ...(data.service ? [`<b>Vehicle Type:</b> ${esc(data.service)}`] : []),
+    ...(data.participants ? [`<b>No. of Pax:</b> ${esc(data.participants)}`] : []),
+    ...(data.description
+      ? [`<b>Remarks:</b><br/>${esc(data.description)}`]
+      : []),
+  ];
 
   return {
     UserLogin: OTOBRO_USER,
@@ -82,25 +109,17 @@ const buildOtoboPayload = (data) => {
       Title: data.subject.trim(),
       Queue: OTOBRO_QUEUE,
       State: "new",
-      Type: OTOBRO_TYPE,
+      Type: data.type || OTOBRO_TYPE,
       PriorityID: "3",
       CustomerUser: email,
       CustomerID: email,
     },
     Article: {
       Subject: data.subject.trim(),
-      Body: [
-        `Full Name: ${data.fullName}`,
-        `Type: ${data.type}`,
-        `Service: ${data.service}`,
-        `Need By: ${data.needBy}`,
-        "",
-        "Description:",
-        data.description,
-      ].join("\n"),
+      Body: bodyLines.join("<br/><br/>"),
       CommunicationChannel: "Email",
       From: email,
-      ContentType: "text/plain; charset=utf8",
+      ContentType: "text/html; charset=utf8",
     },
   };
 };
@@ -154,6 +173,26 @@ app.post("/api/submit", async (req, res) => {
       return res
         .status(400)
         .json({ success: false, error: "Invalid email address." });
+    }
+
+    if (
+      req.body.type === "Parking Lot Request" &&
+      (!req.body.service || req.body.service.trim() === "")
+    ) {
+      return res.status(400).json({
+        success: false,
+        error: "Vehicle type is required for parking lot requests.",
+      });
+    }
+
+    if (
+      req.body.type === "Meeting Room Reservation" &&
+      (!req.body.participants || req.body.participants.trim() === "")
+    ) {
+      return res.status(400).json({
+        success: false,
+        error: "Number of participants is required for meeting room reservations.",
+      });
     }
 
     if (!OTOBRO_BASE_URL || !OTOBRO_USER || !OTOBRO_PASSWORD) {
