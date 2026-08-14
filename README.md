@@ -23,7 +23,8 @@ form-otobo/
 │   ├── public/
 │   │   └── logo.svg          # Header logo
 │   └── src/
-│       ├── pages/index.astro # Ticket form page
+│       ├── pages/index.astro           # Meeting Room Reservation form (`/`)
+│       ├── pages/parking-request.astro # Parking Lot Request form (`/parking-request`)
 │       ├── styles/global.css # Tailwind + DaisyUI + custom theme/validation
 │       └── scripts/form.js   # Validation, char counter, modal, theme, submit
 └── backend/                  # Express API that talks to OTOBO
@@ -126,13 +127,18 @@ running on the same origin behind `/api`.
 
 ## Type / Vehicle mapping
 
-The **Request Type** dropdown sends OTOBO's ticket type name directly
-(`Meeting Room Reservation` / `Parking Lot Request`) and must exist under
-OTOBO → **Admin → Ticket Settings → Types**.
+There are two dedicated form pages, one per request type:
 
-The **Vehicle Type** field only appears when **Parking Lot Request** is
-selected and **No. of Pax** only when **Meeting Room Reservation** is selected;
-both are optional otherwise and are kept in the article body only.
+- `/` → **Meeting Room Reservation**
+- `/parking-request` → **Parking Lot Request**
+
+Each page sends its fixed type name directly as OTOBO's ticket type
+(`Ticket.Type`), which must exist under OTOBO →
+**Admin → Ticket Settings → Types**. The pages link to each other so visitors
+can switch.
+
+**Vehicle Type** appears only on the parking page and **No. of Pax** only on the
+meeting room page; both are kept in the article body only.
 
 ## API reference
 

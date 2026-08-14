@@ -26,7 +26,7 @@ import "../styles/global.css";
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Meeting Room Reservation – P&O Reception</title>
+    <title>Parking Lot Request – P&O Reception</title>
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
   </head>
   <body class="bg-base-200 text-base-content min-h-screen">
@@ -59,10 +59,10 @@ import "../styles/global.css";
               <h1
                 class="text-2xl sm:text-3xl font-extrabold tracking-tight font-title text-base-content mb-2"
               >
-                Meeting Room Reservation
+                Parking Lot Request
               </h1>
               <p class="text-sm text-base-content/70 max-w-md">
-                Reserve a meeting room at any of our locations.
+                Request a parking slot at any of our locations.
               </p>
             </div>
 
@@ -162,12 +162,12 @@ import "../styles/global.css";
                 Notifications and agent replies are sent to the above email.
               </div>
 
-              <!-- Fixed request type (page is meeting-room only) -->
+              <!-- Fixed request type (page is parking-only) -->
               <input
                 type="hidden"
                 id="typeHidden"
                 name="type"
-                value="Meeting Room Reservation"
+                value="Parking Lot Request"
               />
 
               <!-- Location -->
@@ -437,9 +437,9 @@ import "../styles/global.css";
               </div>
 
               <div class="text-center text-xs text-base-content/50 mt-4">
-                Requesting a parking slot instead?{" "}
-                <a href="/parking-request" class="link link-primary"
-                  >Use the parking request form</a
+                Want to book a meeting room instead?{" "}
+                <a href="/" class="link link-primary"
+                  >Use the meeting room form</a
                 >.
               </div>
             </form>

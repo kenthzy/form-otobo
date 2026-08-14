@@ -27,6 +27,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const endTime = document.getElementById("endTime");
 
   const typeSelect = document.getElementById("type");
+  const typeHidden = document.getElementById("typeHidden");
+  const currentType = () => (typeSelect ? typeSelect.value : typeHidden.value);
   const vehicleGroup = document.getElementById("vehicleGroup");
   const vehicleChipsEl = document.getElementById("vehicleChips");
   const vehicleInput = document.getElementById("vehicle");
@@ -211,7 +213,7 @@ document.addEventListener("DOMContentLoaded", () => {
   );
 
   const updateTypeFields = () => {
-    const type = typeSelect.value;
+    const type = currentType();
     const isParking = type === "Parking Lot Request";
     const isMeeting = type === "Meeting Room Reservation";
 
@@ -236,7 +238,9 @@ document.addEventListener("DOMContentLoaded", () => {
     renderPaxChips();
   };
 
-  typeSelect.addEventListener("change", updateTypeFields);
+  if (typeSelect) {
+    typeSelect.addEventListener("change", updateTypeFields);
+  }
   form.addEventListener("reset", () => {
     updateTypeFields();
     setTimeout(updateEndOptions, 0);
