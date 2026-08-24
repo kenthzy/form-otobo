@@ -23,4 +23,4 @@ jobs:
         run: cd /opt/helpdesk/backend && npm ci --omit=dev
 
       - name: Restart API
-        run: pm2 restart helpdesk-api || pm2 start server.js --name helpdesk-api
+        run: pm2 restart helpdesk-api || pm2 start /opt/helpdesk/backend/server.js --name helpdesk-api
