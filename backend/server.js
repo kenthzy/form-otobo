@@ -28,6 +28,7 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 
 const app = express();
 
@@ -50,6 +51,9 @@ const OTOBRO_TYPE = process.env.OTOBRO_TYPE || "Unclassified";
 // Middleware
 app.use(cors({ origin: CORS_ORIGIN }));
 app.use(express.json());
+
+// Serve frontend static files (dist/)
+app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
 // Validation
 const REQUIRED_FIELDS = [

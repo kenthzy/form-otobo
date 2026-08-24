@@ -1,4 +1,4 @@
-name: Deploy Backend to VM
+name: Deploy to VM
 
 on:
   workflow_dispatch:
@@ -11,7 +11,18 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Sync backend to VM
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build frontend
+        run: cd frontend && npm ci && npm run build
+
+      - name: Deploy frontend
+        run: rsync -av --delete frontend/dist/ /var/www/helpdesk/
+
+      - name: Deploy backend
         run: |
           rsync -av --delete \
             --exclude 'node_modules' \
@@ -19,8 +30,11 @@ jobs:
             --exclude '.git' \
             backend/ /opt/helpdesk/backend/
 
-      - name: Install dependencies
+      - name: Install backend dependencies
         run: cd /opt/helpdesk/backend && npm ci --omit=dev
 
-      - name: Restart API
-        run: pm2 restart helpdesk-api || pm2 start /opt/helpdesk/backend/server.js --name helpdesk-api
+      - name: Restart backend
+        run: pm2 restart helpdesk-api --cwd /opt/helpdesk/backend || pm2 start /opt/helpdesk/backend/server.js --name helpdesk-api --cwd /opt/helpdesk/backend
+
+      - name: Reload nginx
+        run: sudo systemctl reload nginx
