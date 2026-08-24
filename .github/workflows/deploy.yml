@@ -1,4 +1,4 @@
-name: Deploy FE to VM
+name: Deploy to VM
 
 on:
   workflow_dispatch:
@@ -35,10 +35,3 @@ jobs:
 
       - name: Restart backend
         run: pm2 restart helpdesk-api --cwd /opt/helpdesk/backend || pm2 start /opt/helpdesk/backend/server.js --name helpdesk-api --cwd /opt/helpdesk/backend
-
-      - name: Deploy Apache config
-        run: |
-          sudo cp $GITHUB_WORKSPACE/.github/helpdesk.conf /etc/apache2/sites-available/helpdesk.conf
-          sudo a2ensite helpdesk.conf
-          sudo apache2ctl configtest
-          sudo systemctl reload apache2
