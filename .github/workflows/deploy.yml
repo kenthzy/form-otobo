@@ -1,0 +1,26 @@
+name: Deploy Backend to VM
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Sync backend to VM
+        run: |
+          rsync -av --delete \
+            --exclude 'node_modules' \
+            --exclude '.env' \
+            --exclude '.git' \
+            backend/ /opt/helpdesk/backend/
+
+      - name: Install dependencies
+        run: cd /opt/helpdesk/backend && npm ci --omit=dev
+
+      - name: Restart API
+        run: pm2 restart helpdesk-api || pm2 start server.js --name helpdesk-api
