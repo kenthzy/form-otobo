@@ -10,7 +10,7 @@ export default defineConfig({
     server: {
       // During `astro dev`, forward API calls to the backend.
       proxy: {
-        "/api": "http://localhost:3000",
+        "/api": "http://172.22.2.101:3000",
       },
     },
   },
