@@ -36,5 +36,9 @@ jobs:
       - name: Restart backend
         run: pm2 restart helpdesk-api --cwd /opt/helpdesk/backend || pm2 start /opt/helpdesk/backend/server.js --name helpdesk-api --cwd /opt/helpdesk/backend
 
-      - name: Reload nginx
-        run: sudo systemctl reload nginx
+      - name: Deploy Apache config
+        run: |
+          sudo cp $GITHUB_WORKSPACE/.github/helpdesk.conf /etc/apache2/sites-available/helpdesk.conf
+          sudo a2ensite helpdesk.conf
+          sudo apache2ctl configtest
+          sudo systemctl reload apache2
