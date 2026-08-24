@@ -1,0 +1,484 @@
+---
+/**
+ * BIT Helpdesk – Ticket Submission Portal
+ * ----------------------------------------------------------
+ * The customer-facing form that employees use to raise IT
+ * support tickets. It posts the completed form to the
+ * backend's `POST /api/submit` endpoint (Express, running as
+ * a separate process on port 3000), which creates the ticket
+ * in OTOBO via its Generic Interface REST API.
+ *
+ * Structure:
+ *   - global.css  : imported once (Tailwind v4 + DaisyUI + custom theme)
+ *   - form.js     : the interactive logic loaded at the bottom of this page
+ *   - public/     : static assets (logo.svg, favicon)
+ *
+ * The page builds to a static site (`npm run build` -> dist/);
+ * for local dev run `npm run dev` (proxies /api to the backend).
+ *
+ * Developer:  https://github.com/kenthzy
+ */
+import "../styles/global.css";
+---
+
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Meeting Room Reservation – P&O Reception</title>
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+  </head>
+  <body class="bg-base-200 text-base-content min-h-screen">
+    <!-- Ambient Glass Background Blobs -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+      <div class="absolute top-[10%] left-[5%] w-[380px] h-[380px] rounded-full bg-indigo-500/20 dark:bg-indigo-500/35 blur-[90px] animate-blob1"></div>
+      <div class="absolute bottom-[15%] right-[5%] w-[420px] h-[420px] rounded-full bg-purple-500/15 dark:bg-purple-500/30 blur-[100px] animate-blob2"></div>
+      <div class="absolute top-[40%] left-[30%] w-[500px] h-[500px] rounded-full bg-blue-500/15 dark:bg-blue-500/25 blur-[120px] animate-blob3"></div>
+    </div>
+
+    <main class="flex justify-center items-center px-4 py-12 min-h-screen">
+      <div class="w-full max-w-xl">
+        <!-- Ticket Form Card -->
+        <div
+          class="card w-full bg-base-100 shadow-2xl border border-base-300/40 backdrop-blur-md"
+        >
+          <div class="card-body p-6 sm:p-10">
+            <!-- Logo & Header -->
+            <div class="flex flex-col items-center text-center mb-8">
+              <img
+                src="/logo.svg"
+                alt="BIT Helpdesk Logo"
+                id="themeToggle"
+                role="button"
+                tabindex="0"
+                aria-label="Toggle light/dark mode"
+                title="Click to toggle light/dark mode"
+                class="w-26 h-26 object-contain logo-img mb-4 cursor-pointer hover:opacity-80 hover:scale-105 transition"
+              />
+              <h1
+                class="text-2xl sm:text-3xl font-extrabold tracking-tight font-title text-base-content mb-2"
+              >
+                Meeting Room Reservation
+              </h1>
+              <p class="text-sm text-base-content/70 max-w-md">
+                Reserve a meeting room at any of our locations.
+              </p>
+            </div>
+
+            <!-- Feedback area (success / error) -->
+            <div id="feedback" class="mb-6" aria-live="polite"></div>
+
+            <form id="ticketForm" class="space-y-5" novalidate>
+              <!-- First Name, Last Name Row -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- First Name -->
+                <div class="form-group flex flex-col gap-1.5">
+                  <label
+                    for="firstName"
+                    class="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-base-content/85"
+                  >
+                    <i data-lucide="user" class="w-4 h-4 text-primary"></i>First
+                    Name
+                  </label>
+                  <input
+                    type="text"
+                    class="input input-bordered w-full focus:input-primary transition-all duration-200"
+                    id="firstName"
+                    name="firstName"
+                    placeholder="John"
+                    autocomplete="given-name"
+                    required
+                  />
+                  <div
+                    class="invalid-feedback text-error text-xs hidden items-center gap-1 mt-0.5"
+                  >
+                    <i
+                      data-lucide="alert-triangle"
+                      class="w-3.5 h-3.5"
+                    ></i>Please enter your first name.
+                  </div>
+                </div>
+
+                <!-- Last Name -->
+                <div class="form-group flex flex-col gap-1.5">
+                  <label
+                    for="lastName"
+                    class="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-base-content/85"
+                  >
+                    <i data-lucide="user" class="w-4 h-4 text-primary"></i>Last
+                    Name
+                  </label>
+                  <input
+                    type="text"
+                    class="input input-bordered w-full focus:input-primary transition-all duration-200"
+                    id="lastName"
+                    name="lastName"
+                    placeholder="Smith"
+                    autocomplete="family-name"
+                    required
+                  />
+                  <div
+                    class="invalid-feedback text-error text-xs hidden items-center gap-1 mt-0.5"
+                  >
+                    <i
+                      data-lucide="alert-triangle"
+                      class="w-3.5 h-3.5"
+                    ></i>Please enter your last name.
+                  </div>
+                </div>
+              </div>
+
+              <!-- Email Address -->
+              <div class="form-group flex flex-col gap-1.5">
+                <label
+                  for="email"
+                  class="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-base-content/85"
+                >
+                  <i data-lucide="mail" class="w-4 h-4 text-primary"></i>Email
+                  Address
+                </label>
+                <input
+                  type="email"
+                  class="input input-bordered w-full focus:input-primary transition-all duration-200"
+                  id="email"
+                  name="email"
+                  placeholder="john.smith@company.com"
+                  autocomplete="email"
+                  required
+                />
+                <div
+                  class="invalid-feedback text-error text-xs hidden items-center gap-1 mt-0.5"
+                >
+                  <i
+                    data-lucide="alert-triangle"
+                    class="w-3.5 h-3.5"
+                  ></i>Please enter a valid email.
+                </div>
+              </div>
+
+              <!-- Warning/Info subtext -->
+              <div class="text-[11px] text-base-content/60 -mt-2">
+                Notifications and agent replies are sent to the above email.
+              </div>
+
+              <!-- Fixed request type (page is meeting-room only) -->
+              <input
+                type="hidden"
+                id="typeHidden"
+                name="type"
+                value="Meeting Room Reservation"
+              />
+
+              <!-- Location -->
+              <div class="form-group flex flex-col gap-1.5">
+                  <label
+                    for="location"
+                    class="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-base-content/85"
+                  >
+                    <i data-lucide="map-pin" class="w-4 h-4 text-primary"></i
+                    >Location
+                  </label>
+                  <select
+                    class="select select-bordered w-full focus:select-primary transition-all duration-200"
+                    id="location"
+                    name="location"
+                    required
+                  >
+                    <option value="" selected disabled>Select location…</option>
+                    <option>Head Office</option>
+                    <option>SOHO</option>
+                    <option>IYS</option>
+                    <option>Glaston</option>
+                    <option>Basecamp Glorietta</option>
+                  </select>
+                  <div
+                    class="invalid-feedback text-error text-xs hidden items-center gap-1 mt-0.5"
+                  >
+                    <i
+                      data-lucide="alert-triangle"
+                      class="w-3.5 h-3.5"
+                    ></i>Please select a location.
+                  </div>
+                </div>
+
+              <!-- Vehicle Type / No. of Pax Row (shown per request type) -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Vehicle Type (shown only for Parking Lot Request) -->
+                <div
+                  class="form-group flex flex-col gap-1.5 sm:col-span-2"
+                  id="vehicleGroup"
+                  hidden
+                >
+                  <label
+                    for="vehicle"
+                    class="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-base-content/85"
+                  >
+                    <i data-lucide="car" class="w-4 h-4 text-primary"></i
+                    >Vehicle Type
+                  </label>
+                  <div
+                    class="flex flex-wrap gap-2"
+                    id="vehicleChips"
+                  ></div>
+                  <input
+                    type="hidden"
+                    id="vehicle"
+                    name="service"
+                    disabled
+                  />
+                  <div
+                    class="invalid-feedback text-error text-xs hidden items-center gap-1 mt-0.5"
+                  >
+                    <i
+                      data-lucide="alert-triangle"
+                      class="w-3.5 h-3.5"
+                    ></i>Please select vehicle type.
+                  </div>
+                </div>
+
+                <!-- No. of Pax (shown only for Meeting Room Reservation) -->
+                <div
+                  class="form-group flex flex-col gap-1.5 sm:col-span-2"
+                  id="paxGroup"
+                  hidden
+                >
+                  <label
+                    for="pax"
+                    class="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-base-content/85"
+                  >
+                    <i data-lucide="users" class="w-4 h-4 text-primary"></i
+                    >No. of Pax
+                  </label>
+                  <div
+                    class="flex gap-2"
+                    id="paxChips"
+                  ></div>
+                  <input
+                    type="hidden"
+                    id="pax"
+                    name="participants"
+                    disabled
+                  />
+                  <div
+                    class="invalid-feedback text-error text-xs hidden items-center gap-1 mt-0.5"
+                  >
+                    <i
+                      data-lucide="alert-triangle"
+                      class="w-3.5 h-3.5"
+                    ></i>Please select the number of participants.
+                  </div>
+                </div>
+              </div>
+
+              <!-- Request Title -->
+              <div class="form-group flex flex-col gap-1.5">
+                <label
+                  for="subject"
+                  class="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-base-content/85"
+                >
+                  <i data-lucide="text" class="w-4 h-4 text-primary"></i>Request
+                  Title
+                </label>
+                <input
+                  type="text"
+                  class="input input-bordered w-full focus:input-primary transition-all duration-200"
+                  id="subject"
+                  name="subject"
+                  placeholder="e.g. Annual Strategy Meeting"
+                  maxlength="200"
+                  required
+                />
+                <div
+                  class="invalid-feedback text-error text-xs hidden items-center gap-1 mt-0.5"
+                >
+                  <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>Please
+                  enter a request title.
+                </div>
+              </div>
+
+              <!-- Remarks -->
+              <div class="form-group flex flex-col gap-1.5">
+                <label
+                  for="description"
+                  class="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-base-content/85"
+                >
+                  <i data-lucide="align-left" class="w-4 h-4 text-primary"></i
+                  >Remarks
+                </label>
+                <textarea
+                  class="textarea textarea-bordered w-full focus:textarea-primary min-h-[120px] transition-all duration-200"
+                  id="description"
+                  name="description"
+                  rows="5"
+                  maxlength="2000"
+                  placeholder="e.g. projector needed, reserve 2 parking slots…"
+                  aria-describedby="descriptionCounter"
+                ></textarea>
+                <div class="flex justify-between items-center mt-1">
+                  <div class="invalid-feedback text-error text-xs hidden items-center gap-1">
+                    <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i
+                    >Please enter remarks.
+                  </div>
+                  <div
+                    id="descriptionCounter"
+                    class="text-xs text-base-content/50 ml-auto"
+                    aria-live="polite"
+                    >0 / 2000</div
+                  >
+                </div>
+              </div>
+
+              <!-- Booking Date & Time -->
+              <div class="flex flex-col gap-1.5">
+                <label
+                  class="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-base-content/85"
+                >
+                  <i
+                    data-lucide="calendar"
+                    class="w-4 h-4 text-primary"
+                  ></i>Booking Date & Time
+                </label>
+                <div class="form-group flex flex-col gap-1.5">
+                  <label
+                    for="bookingDate"
+                    class="text-[11px] text-base-content/70 font-medium"
+                    >Date</label
+                  >
+                  <input
+                    type="date"
+                    id="bookingDate"
+                    name="date"
+                    class="input input-bordered w-full focus:input-primary transition-all duration-200"
+                    required
+                  />
+                  <div
+                    class="invalid-feedback text-error text-xs hidden items-center gap-1 mt-0.5"
+                  >
+                    <i
+                      data-lucide="alert-triangle"
+                      class="w-3.5 h-3.5"
+                    ></i>Select a valid date.
+                  </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div class="form-group flex flex-col gap-1.5">
+                    <label
+                      for="startTime"
+                      class="text-[11px] text-base-content/70 font-medium"
+                      >Start Time</label
+                    >
+                    <select
+                      class="select select-bordered w-full focus:select-primary transition-all duration-200"
+                      id="startTime"
+                      name="startTime"
+                      required
+                    >
+                      <option value="" selected disabled>Select time…</option>
+                    </select>
+                    <div
+                      class="invalid-feedback text-error text-xs hidden items-center gap-1 mt-0.5"
+                    >
+                      <i
+                        data-lucide="alert-triangle"
+                        class="w-3.5 h-3.5"
+                      ></i>Please select a start time.
+                    </div>
+                  </div>
+                  <div class="form-group flex flex-col gap-1.5">
+                    <label
+                      for="endTime"
+                      class="text-[11px] text-base-content/70 font-medium"
+                      >End Time</label
+                    >
+                    <select
+                      class="select select-bordered w-full focus:select-primary transition-all duration-200"
+                      id="endTime"
+                      name="endTime"
+                      required
+                    >
+                      <option value="" selected disabled>Select time…</option>
+                    </select>
+                    <div
+                      class="invalid-feedback text-error text-xs hidden items-center gap-1 mt-0.5"
+                    >
+                      <i
+                        data-lucide="alert-triangle"
+                        class="w-3.5 h-3.5"
+                      ></i>Please select an end time.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="flex items-stretch gap-2 sm:gap-3 mt-8">
+                <button
+                  type="submit"
+                  class="btn btn-primary flex-1 min-h-11 shadow-lg"
+                  id="submitBtn"
+                >
+                  <span id="submitBtnText">Submit Ticket</span>
+                  <span
+                    id="submitBtnSpinner"
+                    class="loading loading-spinner loading-sm hidden"
+                  ></span>
+                </button>
+                <button
+                  type="reset"
+                  class="btn btn-outline min-h-11"
+                  id="resetBtn"
+                  aria-label="Clear form"
+                  title="Clear form"
+                >
+                  <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                  <span class="hidden sm:inline">Clear</span>
+                </button>
+              </div>
+
+              <div class="text-center text-xs text-base-content/50 mt-4">
+                Requesting a parking slot instead?{" "}
+                <a href="/form/parking-request" class="link link-primary"
+                  >Use the parking request form</a
+                >.
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Confirmation Dialog (Native HTML5 <dialog> + DaisyUI) -->
+    <dialog class="modal modal-bottom sm:modal-middle" id="confirmModal">
+      <div class="modal-box border border-base-300/40 shadow-2xl">
+        <h3
+          class="font-bold text-lg flex items-center gap-2 text-primary font-title"
+        >
+          <i data-lucide="send" class="w-5 h-5"></i>Submit ticket?
+        </h3>
+        <p class="py-4 text-sm text-base-content/80">
+          Your ticket will be sent to the support mailbox. Would you like to
+          continue?
+        </p>
+        <div class="modal-action">
+          <button type="button" class="btn btn-outline" id="modalCancelBtn"
+            >Cancel</button
+          >
+          <button type="button" class="btn btn-primary" id="confirmSubmitBtn"
+            >Yes, submit</button
+          >
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop bg-black/30 backdrop-blur-[2px]">
+        <button>close</button>
+      </form>
+    </dialog>
+
+    <!-- Lucide Icons -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide/dist/umd/lucide.min.js"></script>
+    <!-- App logic -->
+    <script>
+      import "../scripts/form.js";
+    </script>
+  </body>
+</html>
