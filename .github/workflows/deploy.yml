@@ -1,4 +1,4 @@
-name: Deploy to VM
+name: Deploy FE to VM
 
 on:
   workflow_dispatch:
