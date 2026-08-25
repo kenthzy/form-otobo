@@ -99,11 +99,11 @@ const buildOtoboPayload = (data) => {
     `<b>Location:</b> ${esc(data.location)}`,
     `<b>Date:</b> ${esc(data.date)}`,
     `<b>Time:</b> ${esc(data.startTime)} - ${esc(data.endTime)}`,
-    ...(data.service ? [`<b>Vehicle Type:</b> ${esc(data.service)}`] : []),
     ...(data.participants ? [`<b>No. of Pax:</b> ${esc(data.participants)}`] : []),
     ...(data.description
       ? [`<b>Remarks:</b><br/>${esc(data.description)}`]
       : []),
+    ...(data.service ? [`<b>Parking Request:</b> ${esc(data.service)}`] : []),
   ];
 
   return {
