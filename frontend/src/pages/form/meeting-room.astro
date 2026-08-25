@@ -204,39 +204,6 @@ import "../../styles/global.css";
 
               <!-- Vehicle Type / No. of Pax Row (shown per request type) -->
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <!-- Vehicle Type (shown only for Parking Lot Request) -->
-                <div
-                  class="form-group flex flex-col gap-1.5 sm:col-span-2"
-                  id="vehicleGroup"
-                  hidden
-                >
-                  <label
-                    for="vehicle"
-                    class="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-base-content/85"
-                  >
-                    <i data-lucide="car" class="w-4 h-4 text-primary"></i
-                    >Vehicle Type
-                  </label>
-                  <div
-                    class="flex flex-wrap gap-2"
-                    id="vehicleChips"
-                  ></div>
-                  <input
-                    type="hidden"
-                    id="vehicle"
-                    name="service"
-                    disabled
-                  />
-                  <div
-                    class="invalid-feedback text-error text-xs hidden items-center gap-1 mt-0.5"
-                  >
-                    <i
-                      data-lucide="alert-triangle"
-                      class="w-3.5 h-3.5"
-                    ></i>Please select vehicle type.
-                  </div>
-                </div>
-
                 <!-- No. of Pax (shown only for Meeting Room Reservation) -->
                 <div
                   class="form-group flex flex-col gap-1.5 sm:col-span-2"
