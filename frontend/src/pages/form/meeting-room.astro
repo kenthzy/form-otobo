@@ -271,6 +271,23 @@ import "../../styles/global.css";
                 </div>
               </div>
 
+              <!-- Parking (Optional) -->
+              <div class="form-group flex flex-col gap-1.5 sm:col-span-2" id="vehicleGroup">
+                <div class="flex items-center gap-2">
+                  <i data-lucide="car" class="w-4 h-4 text-primary"></i>
+                  <span class="text-xs font-bold uppercase tracking-wider text-base-content/85">Parking (Optional)</span>
+                </div>
+                <div
+                  class="flex flex-wrap gap-2"
+                  id="vehicleChips"
+                ></div>
+                <input
+                  type="hidden"
+                  id="vehicle"
+                  name="service"
+                />
+              </div>
+
               <!-- Request Title -->
               <div class="form-group flex flex-col gap-1.5">
                 <label

@@ -217,14 +217,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const isParking = type === "Parking Lot Request";
     const isMeeting = type === "Meeting Room Reservation";
 
-    vehicleGroup.hidden = !isParking;
-    vehicleInput.disabled = !isParking;
-    if (isParking) {
-      vehicleInput.required = true;
-    } else {
-      vehicleInput.required = false;
-      vehicleInput.value = "";
-    }
+    vehicleGroup.hidden = false;
+    vehicleInput.disabled = false;
+    vehicleInput.required = isParking;
     renderVehicleChips();
 
     paxGroup.hidden = !isMeeting;
@@ -241,6 +236,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (typeSelect) {
     typeSelect.addEventListener("change", updateTypeFields);
   }
+
   form.addEventListener("reset", () => {
     updateTypeFields();
     setTimeout(updateEndOptions, 0);
