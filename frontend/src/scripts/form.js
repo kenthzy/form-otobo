@@ -28,10 +28,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const typeSelect = document.getElementById("type");
   const typeHidden = document.getElementById("typeHidden");
-  const currentType = () => (typeSelect ? typeSelect.value : typeHidden.value);
+  const currentType = () => (typeSelect ? typeSelect.value : (typeHidden ? typeHidden.value : ""));
   const vehicleGroup = document.getElementById("vehicleGroup");
   const vehicleChipsEl = document.getElementById("vehicleChips");
   const vehicleInput = document.getElementById("vehicle");
+  const vehicleLabel = document.getElementById("vehicleLabel");
+  const vehicleError = document.getElementById("vehicleError");
   const paxGroup = document.getElementById("paxGroup");
   const paxChipsEl = document.getElementById("paxChips");
   const paxInput = document.getElementById("pax");
@@ -217,11 +219,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const isParking = type === "Parking Lot Request";
     const isMeeting = type === "Meeting Room Reservation";
 
+    // Vehicle group: always visible
     vehicleGroup.hidden = false;
     vehicleInput.disabled = false;
     vehicleInput.required = isParking;
+    if (vehicleLabel) vehicleLabel.textContent = isParking ? "Vehicle Type" : "Parking (Optional)";
+    if (vehicleError) vehicleError.textContent = isParking ? "Please select vehicle type." : "";
     renderVehicleChips();
 
+    // Pax group: only for meeting room
     paxGroup.hidden = !isMeeting;
     paxInput.disabled = !isMeeting;
     if (isMeeting) {
@@ -238,6 +244,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   form.addEventListener("reset", () => {
+    if (typeSelect) typeSelect.value = "Meeting Room Reservation";
     updateTypeFields();
     setTimeout(updateEndOptions, 0);
   });
