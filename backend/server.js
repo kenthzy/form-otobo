@@ -104,6 +104,7 @@ const buildOtoboPayload = (data) => {
       ? [`<b>Remarks:</b><br/>${esc(data.description)}`]
       : []),
     ...(data.service ? [`<b>Parking Request:</b> ${esc(data.service)}`] : []),
+    ...(data.vehicleCount ? [`<b>No. of Vehicles:</b> ${esc(data.vehicleCount)}`] : []),
   ];
 
   return {
@@ -186,6 +187,16 @@ app.post("/api/submit", async (req, res) => {
       return res.status(400).json({
         success: false,
         error: "Vehicle type is required for parking lot requests.",
+      });
+    }
+
+    if (
+      req.body.type === "Parking Lot Request" &&
+      (!req.body.vehicleCount || req.body.vehicleCount.trim() === "")
+    ) {
+      return res.status(400).json({
+        success: false,
+        error: "Number of vehicles is required for parking lot requests.",
       });
     }
 

@@ -131,6 +131,16 @@ import "../../styles/global.css";
                 </div>
               </div>
 
+              <div class="form-group flex flex-col gap-1.5 hidden" id="vehicleCountGroup">
+                <label for="vehicleCount" class="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-base-content/85">
+                  <i data-lucide="hash" class="w-4 h-4 text-primary"></i>No. of Vehicles
+                </label>
+                <input type="number" class="input input-bordered w-full focus:input-primary transition-all duration-200" id="vehicleCount" name="vehicleCount" min="1" max="50" placeholder="e.g. 2" disabled />
+                <div class="invalid-feedback text-error text-xs hidden items-center gap-1 mt-0.5">
+                  <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>Please enter the number of vehicles.
+                </div>
+              </div>
+
               <div class="form-group flex flex-col gap-1.5">
                 <label for="subject" class="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-base-content/85">
                   <i data-lucide="text" class="w-4 h-4 text-primary"></i>Request Title

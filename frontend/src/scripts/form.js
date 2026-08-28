@@ -34,6 +34,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const vehicleInput = document.getElementById("vehicle");
   const vehicleLabel = document.getElementById("vehicleLabel");
   const vehicleError = document.getElementById("vehicleError");
+  const vehicleCountGroup = document.getElementById("vehicleCountGroup");
+  const vehicleCountInput = document.getElementById("vehicleCount");
   const paxGroup = document.getElementById("paxGroup");
   const paxChipsEl = document.getElementById("paxChips");
   const paxInput = document.getElementById("pax");
@@ -180,7 +182,7 @@ document.addEventListener("DOMContentLoaded", () => {
   startTime.addEventListener("change", updateEndOptions);
 
   // Vehicle Type (parking) and No. of Pax (meeting room) quick-pick chips
-  const createChipPicker = (container, hiddenInput, options, buttonClass) => {
+  const createChipPicker = (container, hiddenInput, options, buttonClass, onClick) => {
     const render = () => {
       Array.from(container.children).forEach((btn) => {
         const selected = btn.textContent === hiddenInput.value;
@@ -197,6 +199,7 @@ document.addEventListener("DOMContentLoaded", () => {
       btn.addEventListener("click", () => {
         hiddenInput.value = hiddenInput.value === option ? "" : option;
         render();
+        if (onClick) onClick();
       });
       container.appendChild(btn);
     });
@@ -206,13 +209,37 @@ document.addEventListener("DOMContentLoaded", () => {
   const renderVehicleChips = createChipPicker(vehicleChipsEl, vehicleInput, [
     "Car (4-Wheels)",
     "Motorcycle (2-Wheels)",
-  ], "btn btn-sm btn-outline normal-case flex-1 whitespace-nowrap min-w-[58px] px-3");
+  ], "btn btn-sm btn-outline normal-case flex-1 whitespace-nowrap min-w-[58px] px-3", updateVehicleCountVisibility);
   const renderPaxChips = createChipPicker(
     paxChipsEl,
     paxInput,
     ["1-5", "6-10", "11-20", "21-50", "50+"],
     "btn btn-sm btn-outline normal-case flex-1 whitespace-nowrap px-3"
   );
+
+  const updateVehicleCountVisibility = () => {
+    const type = currentType();
+    const isParking = type === "Parking Lot Request";
+    const hasVehicle = vehicleInput.value !== "";
+
+    if (isParking) {
+      // Parking Lot: always show, required
+      vehicleCountGroup.hidden = false;
+      vehicleCountInput.disabled = false;
+      vehicleCountInput.required = true;
+    } else if (hasVehicle) {
+      // Meeting Room + vehicle selected: show, optional
+      vehicleCountGroup.hidden = false;
+      vehicleCountInput.disabled = false;
+      vehicleCountInput.required = false;
+    } else {
+      // Meeting Room + no vehicle: hide
+      vehicleCountGroup.hidden = true;
+      vehicleCountInput.disabled = true;
+      vehicleCountInput.required = false;
+      vehicleCountInput.value = "";
+    }
+  };
 
   const updateTypeFields = () => {
     const type = currentType();
@@ -237,6 +264,8 @@ document.addEventListener("DOMContentLoaded", () => {
       paxInput.value = "";
     }
     renderPaxChips();
+
+    updateVehicleCountVisibility();
   };
 
   if (typeSelect) {
@@ -294,6 +323,7 @@ document.addEventListener("DOMContentLoaded", () => {
       type: data.get("type"),
       location: data.get("location").trim(),
       service: data.get("service")?.trim() || "",
+      vehicleCount: data.get("vehicleCount")?.trim() || "",
       participants: data.get("participants")?.trim() || "",
       subject: data.get("subject").trim(),
       description: data.get("description").trim(),
