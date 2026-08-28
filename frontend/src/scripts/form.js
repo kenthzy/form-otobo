@@ -46,39 +46,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const confirmSubmitBtn = document.getElementById("confirmSubmitBtn");
   const modalCancelBtn = document.getElementById("modalCancelBtn");
 
-  // Theme Switcher Elements
-  const themeToggle = document.getElementById("themeToggle");
-
   // State
   let pendingPayload = null;
-
-  // Theme Switcher Logic
-  const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  const initialTheme =
-    localStorage.getItem("theme") || (systemPrefersDark ? "dark" : "light");
-
-  const applyTheme = (theme) => {
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("theme", theme);
-  };
-
-  applyTheme(initialTheme);
-
-  themeToggle.addEventListener("click", () => {
-    const newTheme =
-      document.documentElement.getAttribute("data-theme") === "dark"
-        ? "light"
-        : "dark";
-    applyTheme(newTheme);
-  });
-
-  // Keyboard access for the logo toggle (Enter / Space)
-  themeToggle.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      themeToggle.click();
-    }
-  });
 
   // Custom Modal Controls
   const showModal = () => {
