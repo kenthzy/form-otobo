@@ -212,15 +212,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const hasVehicle = vehicleInput.value !== "";
 
     if (isParking) {
-      vehicleCountGroup.hidden = false;
+      vehicleCountGroup.classList.remove("hidden");
       vehicleCountInput.disabled = false;
       vehicleCountInput.required = true;
     } else if (hasVehicle) {
-      vehicleCountGroup.hidden = false;
+      vehicleCountGroup.classList.remove("hidden");
       vehicleCountInput.disabled = false;
       vehicleCountInput.required = false;
     } else {
-      vehicleCountGroup.hidden = true;
+      vehicleCountGroup.classList.add("hidden");
       vehicleCountInput.disabled = true;
       vehicleCountInput.required = false;
       vehicleCountInput.value = "";
@@ -244,7 +244,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const isMeeting = type === "Meeting Room Reservation";
 
     // Vehicle group: always visible
-    vehicleGroup.hidden = false;
+    vehicleGroup.classList.remove("hidden");
     vehicleInput.disabled = false;
     vehicleInput.required = isParking;
     if (vehicleLabel) vehicleLabel.textContent = isParking ? "Vehicle Type" : "Parking (Optional)";
@@ -252,7 +252,11 @@ document.addEventListener("DOMContentLoaded", () => {
     renderVehicleChips();
 
     // Pax group: only for meeting room
-    paxGroup.hidden = !isMeeting;
+    if (isMeeting) {
+      paxGroup.classList.remove("hidden");
+    } else {
+      paxGroup.classList.add("hidden");
+    }
     paxInput.disabled = !isMeeting;
     if (isMeeting) {
       paxInput.required = true;
