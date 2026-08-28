@@ -206,6 +206,27 @@ document.addEventListener("DOMContentLoaded", () => {
     return render;
   };
 
+  const updateVehicleCountVisibility = () => {
+    const type = currentType();
+    const isParking = type === "Parking Lot Request";
+    const hasVehicle = vehicleInput.value !== "";
+
+    if (isParking) {
+      vehicleCountGroup.hidden = false;
+      vehicleCountInput.disabled = false;
+      vehicleCountInput.required = true;
+    } else if (hasVehicle) {
+      vehicleCountGroup.hidden = false;
+      vehicleCountInput.disabled = false;
+      vehicleCountInput.required = false;
+    } else {
+      vehicleCountGroup.hidden = true;
+      vehicleCountInput.disabled = true;
+      vehicleCountInput.required = false;
+      vehicleCountInput.value = "";
+    }
+  };
+
   const renderVehicleChips = createChipPicker(vehicleChipsEl, vehicleInput, [
     "Car (4-Wheels)",
     "Motorcycle (2-Wheels)",
@@ -216,30 +237,6 @@ document.addEventListener("DOMContentLoaded", () => {
     ["1-5", "6-10", "11-20", "21-50", "50+"],
     "btn btn-sm btn-outline normal-case flex-1 whitespace-nowrap px-3"
   );
-
-  const updateVehicleCountVisibility = () => {
-    const type = currentType();
-    const isParking = type === "Parking Lot Request";
-    const hasVehicle = vehicleInput.value !== "";
-
-    if (isParking) {
-      // Parking Lot: always show, required
-      vehicleCountGroup.hidden = false;
-      vehicleCountInput.disabled = false;
-      vehicleCountInput.required = true;
-    } else if (hasVehicle) {
-      // Meeting Room + vehicle selected: show, optional
-      vehicleCountGroup.hidden = false;
-      vehicleCountInput.disabled = false;
-      vehicleCountInput.required = false;
-    } else {
-      // Meeting Room + no vehicle: hide
-      vehicleCountGroup.hidden = true;
-      vehicleCountInput.disabled = true;
-      vehicleCountInput.required = false;
-      vehicleCountInput.value = "";
-    }
-  };
 
   const updateTypeFields = () => {
     const type = currentType();
